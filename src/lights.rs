@@ -35,3 +35,21 @@ impl ImmediateLight for DirectionalLight {
         }
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct PointLight {
+    pub origin: Vec3,
+    pub radius: f32,
+    pub color: Vec3,
+}
+
+impl ImmediateLight for PointLight {
+    fn sample(&self, from: Vec3) -> LightSample {
+        let shadow_ray_target = self.origin + Vec3::random_unit_vec() * self.radius;
+        let distance = (from - self.origin).magnitude();
+        LightSample {
+            shadow_ray_target,
+            color: self.color * 1.0 / (distance - self.radius + 1.0).powi(1),
+        }
+    }
+}
