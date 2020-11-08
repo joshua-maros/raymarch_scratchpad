@@ -85,6 +85,7 @@ impl Scene {
             .unwrap()
             .material_at(surface_pos);
         let surface_color = mat.base_color;
+        result += mat.emission;
         for light in &self.lights {
             let sample = light.sample(ray_start);
             let brightness = (sample.shadow_ray_target - ray_start)

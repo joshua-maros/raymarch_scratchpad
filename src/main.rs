@@ -11,8 +11,14 @@ fn main() {
         base_color: (1, 0.1, 1).into(),
         ..Default::default()
     };
+    let glow = BasicMaterial {
+        emission: Vec3::from((0.5, 1, 0.2)) * 50,
+        ..Default::default()
+    };
     scene.add_object(sphere(pink.clone()).scaled(2).translated((0, 0, 20)));
+    scene.add_object(sphere(glow.clone()).scaled(1).translated((-4, 2, 20)));
     scene.add_object(cube(clay.clone(), (20, 0.1, 20)).translated((0, 2, 20)));
+
     scene.add_light(DirectionalLight {
         direction: Vec3::from((1, 1, 0.5)).normalized(),
         percent_size: 0.5,
@@ -21,7 +27,7 @@ fn main() {
 
     let renderer = Renderer {
         size: 100,
-        samples: 32,
+        samples: 256,
         num_bounces: 20,
         camera_size: 0.3,
         pixel_size: 0.667,
