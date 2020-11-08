@@ -359,6 +359,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "raymarch_scratchpad"
+version = "0.1.0"
+dependencies = [
+ "image",
+ "num-traits",
+ "rand",
+ "rand_distr",
+]
+
+[[package]]
 name = "rayon"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -381,16 +391,6 @@ dependencies = [
  "crossbeam-utils",
  "lazy_static",
  "num_cpus",
-]
-
-[[package]]
-name = "rustproj"
-version = "0.1.0"
-dependencies = [
- "image",
- "num-traits",
- "rand",
- "rand_distr",
 ]
 
 [[package]]

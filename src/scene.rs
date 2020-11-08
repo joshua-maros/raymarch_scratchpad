@@ -74,8 +74,10 @@ impl Scene {
         let ray_start = surface_pos + normal * MIN_SDF_DISTANCE * 2.0;
         let surface_color: Vec3 = 0.5.into();
         for light in &self.lights {
-            let sample = light.sample(surface_pos);
-            let brightness = sample.shadow_ray_target.dot(normal);
+            let sample = light.sample(ray_start);
+            let brightness = (sample.shadow_ray_target - ray_start)
+                .normalized()
+                .dot(normal);
             if brightness > 0.0 && self.march_can_reach(ray_start, sample.shadow_ray_target) {
                 result += sample.color * surface_color * brightness;
             }

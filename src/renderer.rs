@@ -5,8 +5,8 @@ use rand_distr::{Distribution, Normal};
 pub struct Renderer {
     pub size: u32,
     pub samples: u32,
-    pub camera_size: f32,
     pub num_bounces: u32,
+    pub camera_size: f32,
     pub exposure: f32,
 }
 

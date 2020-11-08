@@ -11,19 +11,9 @@ pub struct LightSample {
 
 #[derive(Clone, Debug)]
 pub struct DirectionalLight {
-    direction: Vec3,
-    size: f32,
-    color: Vec3,
-}
-
-impl DirectionalLight {
-    pub fn new<T: Into<Vec3>>(direction: T, size: f32, color: Vec3) -> Self {
-        Self {
-            direction: direction.into().normalized(),
-            size,
-            color,
-        }
-    }
+    pub direction: Vec3,
+    pub size: f32,
+    pub color: Vec3,
 }
 
 impl ImmediateLight for DirectionalLight {
