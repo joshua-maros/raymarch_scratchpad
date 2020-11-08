@@ -1,17 +1,24 @@
-use crate::{SdfObject, Vec3};
-use rand::Rng;
+use crate::{ImmediateLight, SdfObject, Vec3, MAX_SDF_DISTANCE, MIN_SDF_DISTANCE};
 
 pub struct Scene {
     objects: Vec<Box<dyn SdfObject>>,
+    lights: Vec<Box<dyn ImmediateLight>>,
 }
 
 impl Scene {
     pub fn new() -> Self {
-        Self { objects: vec![] }
+        Self {
+            objects: vec![],
+            lights: vec![],
+        }
     }
 
     pub fn add_object<T: SdfObject + 'static>(&mut self, obj: T) {
         self.objects.push(Box::new(obj));
+    }
+
+    pub fn add_light<T: ImmediateLight + 'static>(&mut self, obj: T) {
+        self.lights.push(Box::new(obj));
     }
 
     fn distance_field_at(&self, point: Vec3) -> f32 {
@@ -30,21 +37,63 @@ impl Scene {
         let df_z = self.distance_field_at(point + (0, 0, EPSILON));
         Vec3::from((df_x - df_center, df_y - df_center, df_z - df_center)).normalized()
     }
-}
 
-fn random_bounce_direction(normal: Vec3) -> Vec3 {
-    let mut rng = rand::thread_rng();
-    let random_point_on_sphere = loop {
-        let random_vec = Vec3::new(
-            rng.gen_range(-1.0, 1.0),
-            rng.gen_range(-1.0, 1.0),
-            rng.gen_range(-1.0, 1.0),
-        );
-        // Throw away all vectors with length greater than one.
-        if random_vec.magnitude() > 1.0 {
-            continue;
+    fn march_can_reach(&self, ray_start: Vec3, target: Vec3) -> bool {
+        let mut remaining_len = (target - ray_start).magnitude();
+        let dir = (target - ray_start).normalized();
+        let mut pos = ray_start;
+        loop {
+            let df = self.distance_field_at(pos);
+            if df <= MIN_SDF_DISTANCE {
+                return false;
+            }
+            remaining_len -= df;
+            if remaining_len <= 0.0 {
+                return true;
+            }
+            pos += dir * df;
         }
-        break random_vec.normalized();
-    };
-    (random_point_on_sphere + normal).normalized()
+    }
+
+    fn march_until_hit(&self, ray_start: Vec3, ray_dir: Vec3) -> Option<Vec3> {
+        let mut pos = ray_start;
+        loop {
+            let df = self.distance_field_at(pos);
+            if df <= MIN_SDF_DISTANCE {
+                return Some(pos);
+            } else if df >= MAX_SDF_DISTANCE {
+                return None;
+            }
+            pos += ray_dir * df;
+        }
+    }
+
+    fn color_on_surface(&self, surface_pos: Vec3, remaining_bounces: u32) -> Vec3 {
+        let mut result: Vec3 = 0.into();
+        let normal = self.normal_at(surface_pos);
+        let ray_start = surface_pos + normal * MIN_SDF_DISTANCE * 2.0;
+        let surface_color: Vec3 = 0.5.into();
+        for light in &self.lights {
+            let sample = light.sample(surface_pos);
+            let brightness = sample.shadow_ray_target.dot(normal);
+            if brightness > 0.0 && self.march_can_reach(ray_start, sample.shadow_ray_target) {
+                result += sample.color * surface_color * brightness;
+            }
+        }
+        if remaining_bounces > 0 {
+            let dir = crate::random_bounce_direction(normal);
+            // This should never be negative.
+            let brightness = dir.dot(normal);
+            let light = self.do_camera_ray(ray_start, dir, remaining_bounces - 1);
+            result += light * surface_color * brightness;
+        }
+        result
+    }
+
+    pub fn do_camera_ray(&self, origin: Vec3, direction: Vec3, remaining_bounces: u32) -> Vec3 {
+        match self.march_until_hit(origin, direction) {
+            Some(hit_point) => self.color_on_surface(hit_point, remaining_bounces),
+            None => (0, 0, 1).into(),
+        }
+    }
 }
