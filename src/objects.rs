@@ -1,11 +1,11 @@
-use crate::Vec3;
-use std::fmt::Debug;
+use crate::{Material, MaterialSample, Vec3};
 
 pub trait RenderedObject {
     fn distance_to(&self, point: Vec3) -> f32;
+    fn material_at(&self, point: Vec3) -> MaterialSample;
 }
 
-pub trait Object: Sized + Clone + Debug {
+pub trait Object: RenderedObject + Sized {
     fn translated<V: Into<Vec3>>(self, offset: V) -> Translated<Self> {
         Translated {
             object: self,
@@ -21,57 +21,75 @@ pub trait Object: Sized + Clone + Debug {
     }
 }
 
-impl<T: RenderedObject + Sized + Clone + Debug> Object for T {}
+impl<T: RenderedObject + Sized> Object for T {}
 
-#[derive(Clone, Debug)]
-pub struct Translated<T: Object + Clone + Debug> {
+pub struct Translated<T: RenderedObject> {
     object: T,
     translation: Vec3,
 }
 
-impl<T: RenderedObject + Clone + Debug> RenderedObject for Translated<T> {
+impl<T: RenderedObject> RenderedObject for Translated<T> {
     fn distance_to(&self, point: Vec3) -> f32 {
         self.object.distance_to(point - self.translation)
     }
+
+    fn material_at(&self, point: Vec3) -> MaterialSample {
+        self.object.material_at(point - self.translation)
+    }
 }
 
-#[derive(Clone, Debug)]
-pub struct Scaled<T: Object + Clone + Debug> {
+pub struct Scaled<T: RenderedObject> {
     object: T,
     scale: f32,
 }
 
-impl<T: RenderedObject + Clone + Debug> RenderedObject for Scaled<T> {
+impl<T: RenderedObject> RenderedObject for Scaled<T> {
     fn distance_to(&self, point: Vec3) -> f32 {
         self.object.distance_to(point / self.scale) * self.scale
     }
-}
 
-#[derive(Clone, Debug)]
-pub struct Sphere;
-
-pub fn sphere() -> Sphere {
-    Sphere
-}
-
-impl RenderedObject for Sphere {
-    fn distance_to(&self, point: Vec3) -> f32 {
-        point.magnitude() - 1.0
+    fn material_at(&self, point: Vec3) -> MaterialSample {
+        self.object.material_at(point / self.scale)
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Cube {
+pub struct Sphere<M: Material> {
+    mat: M,
+}
+
+pub fn sphere(mat: impl Material) -> Sphere<impl Material> {
+    Sphere { mat }
+}
+
+impl<M: Material> RenderedObject for Sphere<M> {
+    fn distance_to(&self, point: Vec3) -> f32 {
+        point.magnitude() - 1.0
+    }
+
+    fn material_at(&self, point: Vec3) -> MaterialSample {
+        self.mat.sample(point)
+    }
+}
+
+pub struct Cube<M: Material> {
     size: Vec3,
+    mat: M,
 }
 
-pub fn cube<T: Into<Vec3>>(size: T) -> Cube {
-    Cube { size: size.into() }
+pub fn cube<M: Material, T: Into<Vec3>>(mat: M, size: T) -> Cube<M> {
+    Cube {
+        mat,
+        size: size.into(),
+    }
 }
 
-impl RenderedObject for Cube {
+impl<M: Material> RenderedObject for Cube<M> {
     fn distance_to(&self, point: Vec3) -> f32 {
         let face_distances = point.abs() - self.size;
         face_distances.x.max(face_distances.y.max(face_distances.z))
+    }
+
+    fn material_at(&self, point: Vec3) -> MaterialSample {
+        self.mat.sample(point)
     }
 }

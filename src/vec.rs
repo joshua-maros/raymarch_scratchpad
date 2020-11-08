@@ -82,6 +82,10 @@ impl Vec3 {
     pub fn abs(self) -> Self {
         (self.x.abs(), self.y.abs(), self.z.abs()).into()
     }
+    
+    pub fn sum(self) -> f32 {
+        self.x + self.y + self.z
+    }
 }
 
 impl<T: NumCast + Copy> From<[T; 3]> for Vec3 {

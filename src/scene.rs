@@ -78,7 +78,13 @@ impl Scene {
         let mut result: Vec3 = 0.into();
         let normal = self.normal_at(surface_pos);
         let ray_start = surface_pos + normal * MIN_SDF_DISTANCE * 2.0;
-        let surface_color: Vec3 = 0.5.into();
+        let mat = self
+            .objects
+            .iter()
+            .find(|o| o.distance_to(surface_pos) <= MIN_SDF_DISTANCE)
+            .unwrap()
+            .material_at(surface_pos);
+        let surface_color = mat.base_color;
         for light in &self.lights {
             let sample = light.sample(ray_start);
             let brightness = (sample.shadow_ray_target - ray_start)

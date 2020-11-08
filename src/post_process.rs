@@ -15,17 +15,26 @@ impl PostProcessor for AdjustExposure {
 
 #[derive(Clone, Debug)]
 /// https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
+/// https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl
 /// makes your colors look nicer
 pub struct AcesFilmicCurve;
 
 impl PostProcessor for AcesFilmicCurve {
     fn process_pixel(&self, pixel: Vec3) -> Vec3 {
-        const A: f32 = 2.51;
-        const B: f32 = 0.03;
-        const C: f32 = 2.43;
-        const D: f32 = 0.59;
-        const E: f32 = 0.14;
-        ((pixel * (pixel * A + B)) / (pixel * (pixel * C + D) + E)).saturated()
+        let pixel = Vec3::new(
+            (pixel * (0.59719, 0.35458, 0.04823)).sum(),
+            (pixel * (0.07600, 0.90834, 0.01566)).sum(),
+            (pixel * (0.02840, 0.13383, 0.83777)).sum(),
+        );
+        let a = pixel * (pixel + 0.0245786) + 0.000090537;
+        let b = pixel * (pixel * 0.983729 + 0.4329510) + 0.238081;
+        let pixel = a / b;
+        let pixel = Vec3::new(
+            (pixel * (1.60475, -0.53108, -0.07367)).sum(),
+            (pixel * (-0.10208, 1.10813, -0.00605)).sum(),
+            (pixel * (-0.00327, -0.07276, 1.07602)).sum(),
+        );
+        pixel.saturated()
     }
 }
 
