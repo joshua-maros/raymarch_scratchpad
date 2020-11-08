@@ -71,6 +71,14 @@ impl Vec3 {
         self / self.magnitude()
     }
 
+    pub fn saturated(self) -> Self {
+        Self {
+            x: self.x.max(0.0).min(1.0),
+            y: self.y.max(0.0).min(1.0),
+            z: self.z.max(0.0).min(1.0),
+        }
+    }
+
     pub fn abs(self) -> Self {
         (self.x.abs(), self.y.abs(), self.z.abs()).into()
     }

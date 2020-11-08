@@ -1,17 +1,17 @@
-use crate::{Scene, Vec3};
+use crate::{PostProcessor, Scene, Vec3};
 use image::{ImageBuffer, RgbImage};
 use rand_distr::{Distribution, Normal};
 
-pub struct Renderer {
+pub struct Renderer<P: PostProcessor> {
     pub size: u32,
     pub samples: u32,
     pub num_bounces: u32,
     pub camera_size: f32,
-    pub exposure: f32,
     pub pixel_size: f32,
+    pub post_process: P,
 }
 
-impl Renderer {
+impl<P: PostProcessor> Renderer<P> {
     fn sample(&self, scene: &Scene, x: u32, y: u32) -> Vec3 {
         let mut rng = rand::thread_rng();
         let dist = Normal::new(0.0, self.pixel_size / 2.0).unwrap();
@@ -32,7 +32,8 @@ impl Renderer {
                 for _ in 0..self.samples {
                     color += self.sample(scene, x, y);
                 }
-                color *= self.exposure / self.samples as f32;
+                color /= self.samples as f32;
+                color = self.post_process.process_pixel(color);
                 let color = [
                     (color.x * 255.0) as u8,
                     (color.y * 255.0) as u8,

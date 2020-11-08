@@ -18,11 +18,11 @@ fn main() {
 
     let renderer = Renderer {
         size: 100,
-        samples: 32,
+        samples: 256,
         num_bounces: 5,
         camera_size: 0.3,
-        exposure: 0.7,
         pixel_size: 0.5,
+        post_process: (AdjustExposure(1.1), AcesFilmicCurve)
     };
     renderer.render(&scene, "test.png");
 }
