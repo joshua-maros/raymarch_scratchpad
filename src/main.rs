@@ -2,6 +2,7 @@ use raymarch_scratchpad::*;
 
 fn main() {
     let mut scene = Scene::new();
+    scene.set_sky_color((0.3, 0.7, 0.9));
     scene.add_object(Sphere {
         origin: (0, 0, 10).into(),
         radius: 1.0,
@@ -22,6 +23,7 @@ fn main() {
         num_bounces: 5,
         camera_size: 0.3,
         exposure: 0.7,
+        pixel_size: 0.5,
     };
-    renderer.render(&scene);
+    renderer.render(&scene, "test.png");
 }

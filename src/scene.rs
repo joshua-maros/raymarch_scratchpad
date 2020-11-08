@@ -3,6 +3,7 @@ use crate::{ImmediateLight, SdfObject, Vec3, MAX_SDF_DISTANCE, MIN_SDF_DISTANCE}
 pub struct Scene {
     objects: Vec<Box<dyn SdfObject>>,
     lights: Vec<Box<dyn ImmediateLight>>,
+    sky_color: Vec3,
 }
 
 impl Scene {
@@ -10,6 +11,7 @@ impl Scene {
         Self {
             objects: vec![],
             lights: vec![],
+            sky_color: (0, 0, 1).into(),
         }
     }
 
@@ -19,6 +21,10 @@ impl Scene {
 
     pub fn add_light<T: ImmediateLight + 'static>(&mut self, obj: T) {
         self.lights.push(Box::new(obj));
+    }
+
+    pub fn set_sky_color<T: Into<Vec3>>(&mut self, color: T) {
+        self.sky_color = color.into();
     }
 
     fn distance_field_at(&self, point: Vec3) -> f32 {
@@ -95,7 +101,7 @@ impl Scene {
     pub fn do_camera_ray(&self, origin: Vec3, direction: Vec3, remaining_bounces: u32) -> Vec3 {
         match self.march_until_hit(origin, direction) {
             Some(hit_point) => self.color_on_surface(hit_point, remaining_bounces),
-            None => (0, 0, 1).into(),
+            None => self.sky_color,
         }
     }
 }

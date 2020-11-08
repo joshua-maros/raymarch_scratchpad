@@ -8,12 +8,13 @@ pub struct Renderer {
     pub num_bounces: u32,
     pub camera_size: f32,
     pub exposure: f32,
+    pub pixel_size: f32,
 }
 
 impl Renderer {
     fn sample(&self, scene: &Scene, x: u32, y: u32) -> Vec3 {
         let mut rng = rand::thread_rng();
-        let dist = Normal::new(0.0, 0.2).unwrap();
+        let dist = Normal::new(0.0, self.pixel_size / 2.0).unwrap();
         let dx = dist.sample(&mut rng);
         let dy = dist.sample(&mut rng);
         let ray_dir_x = (((x as f32 + dx) / self.size as f32) - 0.5) * 2.0 * self.camera_size;
@@ -23,7 +24,7 @@ impl Renderer {
         scene.do_camera_ray(0.into(), ray_dir, self.num_bounces)
     }
 
-    pub fn render(&self, scene: &Scene) {
+    pub fn render(&self, scene: &Scene, filename: &str) {
         let mut buf: RgbImage = ImageBuffer::new(self.size, self.size);
         for x in 0..self.size {
             for y in 0..self.size {
@@ -40,6 +41,6 @@ impl Renderer {
                 buf.put_pixel(x, y, color.into());
             }
         }
-        buf.save("test.png").unwrap();
+        buf.save(filename).unwrap();
     }
 }
