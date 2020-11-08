@@ -9,7 +9,7 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-    pub fn new(x: f32, y: f32, z: f32) -> Self {
+    pub const fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
 
@@ -24,6 +24,14 @@ impl Vec3 {
 
     pub fn distance<T: Into<Self>>(self, other: T) -> f32 {
         (self - other.into()).magnitude()
+    }
+
+    pub fn normalized(self) -> Self {
+        self / self.magnitude()
+    }
+
+    pub fn abs(self) -> Self {
+        (self.x.abs(), self.y.abs(), self.z.abs()).into()
     }
 }
 
