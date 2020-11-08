@@ -1,4 +1,5 @@
 use num_traits::NumCast;
+use rand::Rng;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign};
 
 #[derive(Clone, Copy, Debug)]
@@ -13,9 +14,49 @@ impl Vec3 {
         Self { x, y, z }
     }
 
+    /// Returns a random vector with mangnitude 1, with the random distribution guaranteeing that
+    /// all directions are equally likely, I.E. the vectors are all equally distributed along the
+    /// surface of the unit sphere.
+    pub fn random_unit_vec() -> Self {
+        let mut rng = rand::thread_rng();
+        loop {
+            let random_vec = Vec3::new(
+                rng.gen_range(-1.0, 1.0),
+                rng.gen_range(-1.0, 1.0),
+                rng.gen_range(-1.0, 1.0),
+            );
+            // Throw away all vectors with length greater than one.
+            if random_vec.magnitude() > 1.0 {
+                continue;
+            }
+            break random_vec.normalized();
+        }
+    }
+
     pub fn dot<T: Into<Self>>(self, other: T) -> f32 {
         let other = other.into();
         self.x * other.x + self.y * other.y + self.z * other.z
+    }
+
+    pub fn cross<T: Into<Self>>(self, other: T) -> Self {
+        let other = other.into();
+        Self {
+            x: self.y * other.z,
+            y: self.z * other.x,
+            z: self.x * other.y,
+        }
+    }
+
+    /// Returns two vectors such that each vector is perpendicular to both each other and the
+    /// original vector.
+    pub fn make_two_perpendicular(self) -> (Self, Self) {
+        let v1 = if self.x == 0.0 && self.y == 0.0 {
+            (0, 1, 0).into()
+        } else {
+            (-self.y, self.x, 0).into()
+        };
+        let v2 = self.cross(v1);
+        (v1, v2)
     }
 
     pub fn magnitude(self) -> f32 {

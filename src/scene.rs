@@ -89,7 +89,7 @@ impl Scene {
             }
         }
         if remaining_bounces > 0 {
-            let dir = crate::random_bounce_direction(normal);
+            let dir = (Vec3::random_unit_vec() + normal).normalized();
             // This should never be negative.
             let brightness = dir.dot(normal);
             let light = self.do_camera_ray(ray_start, dir, remaining_bounces - 1);
