@@ -49,7 +49,7 @@ impl ImmediateLight for PointLight {
         let distance = (from - self.origin).magnitude();
         LightSample {
             shadow_ray_target,
-            color: self.color * 1.0 / (distance - self.radius + 1.0).powi(1),
+            color: self.color * 1.0 / (distance - self.radius + 1.0),
         }
     }
 }

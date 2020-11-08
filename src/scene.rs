@@ -1,7 +1,7 @@
-use crate::{ImmediateLight, SdfObject, Vec3, MAX_SDF_DISTANCE, MIN_SDF_DISTANCE};
+use crate::{ImmediateLight, RenderedObject, Vec3, MAX_SDF_DISTANCE, MIN_SDF_DISTANCE};
 
 pub struct Scene {
-    objects: Vec<Box<dyn SdfObject>>,
+    objects: Vec<Box<dyn RenderedObject>>,
     lights: Vec<Box<dyn ImmediateLight>>,
     sky_color: Vec3,
 }
@@ -15,7 +15,7 @@ impl Scene {
         }
     }
 
-    pub fn add_object<T: SdfObject + 'static>(&mut self, obj: T) {
+    pub fn add_object<T: RenderedObject + 'static>(&mut self, obj: T) {
         self.objects.push(Box::new(obj));
     }
 
